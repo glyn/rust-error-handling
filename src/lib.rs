@@ -5,7 +5,7 @@ use std::io::Read;
 pub fn read_file(path: PathBuf) -> Result<String, ParserError> {
     File::open(path)
         .map_err(From::from)
-        .and_then(|file| size_from_file(file).map_err(From::from))
+        .and_then_e(|file| size_from_file(file))
         .and_then(|_| Ok(String::from("File is non-empty")))
 }
 
@@ -27,6 +27,20 @@ impl From<std::string::String> for ParserError {
     }
 }
 
+trait ErrorMapping<T, E, D>
+    where E: std::convert::From<D> {
+    fn and_then_e<U, F: FnOnce(T) -> Result<U, D>>(self, op: F) -> Result<U, E>;
+}
+
+impl<T, E, D> ErrorMapping<T, E, D> for Result<T, E>
+    where E: std::convert::From<D> {
+    fn and_then_e<U, F: FnOnce(T) -> Result<U, D>>(self, op: F) -> Result<U, E> {
+        match self {
+            Ok(t) => op(t).map_err(From::from),
+            Err(e) => Err(e).map_err(From::from),
+        }
+    }
+}
 
 fn size_from_file(mut file: File) -> Result<usize, String> {
     let mut my_string = String::new();
