@@ -3,15 +3,10 @@ use std::fs::File;
 use std::io::Read;
 
 pub fn read_file(path: PathBuf) -> Result<String, ParserError> {
-    match File::open(path) {
-        Err(err) => Err(ParserError::BadFile(err.to_string())),
-        Ok(file) => {
-            match size_from_file(file) {
-                Err(err) => Err(ParserError::BadSize(err)),
-                Ok(_) => Ok(String::from("File is non-empty"))
-            }
-        }
-    }
+    File::open(path)
+        .map_err(|err| ParserError::BadFile(err.to_string()))
+        .and_then(|file| size_from_file(file).map_err(|err| ParserError::BadSize(err)))
+        .and_then(|_| Ok(String::from("File is non-empty")))
 }
 
 #[derive(Debug)]
