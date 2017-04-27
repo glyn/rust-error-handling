@@ -4,8 +4,8 @@ use std::io::Read;
 
 pub fn read_file(path: PathBuf) -> Result<String, ParserError> {
     File::open(path)
-        .map_err(ParserError::from)
-        .and_then(|file| size_from_file(file).map_err(ParserError::from))
+        .map_err(From::from)
+        .and_then(|file| size_from_file(file).map_err(From::from))
         .and_then(|_| Ok(String::from("File is non-empty")))
 }
 
