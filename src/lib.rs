@@ -4,9 +4,10 @@ use std::io::Read;
 use std::io::Error;
 
 pub fn read_file(path: PathBuf) -> Result<String, ParserError> {
-    let file = try!(File::open(path));
-    let size = try!(size_from_file(file));
-    Ok(String::from("File is non-empty"))
+    File::open(path)
+        .map_err(ParserError::BadFile)
+        .and_then(|file| size_from_file(file).map_err(ParserError::BadSize))
+        .and_then(|_| Ok(String::from("File is non-empty")))
 }
 
 #[derive(Debug)]
