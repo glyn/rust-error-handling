@@ -1,17 +1,18 @@
 use std::path::PathBuf;
 use std::fs::File;
 use std::io::Read;
+use std::io::Error;
 
 pub fn read_file(path: PathBuf) -> Result<String, ParserError> {
     File::open(path)
-        .map_err(|err| ParserError::BadFile(err.to_string()))
+        .map_err(ParserError::BadFile)
         .and_then(|file| size_from_file(file).map_err(|err| ParserError::BadSize(err)))
         .and_then(|_| Ok(String::from("File is non-empty")))
 }
 
 #[derive(Debug)]
 pub enum ParserError {
-    BadFile(String),
+    BadFile(std::io::Error),
     BadSize(String),
 }
 
