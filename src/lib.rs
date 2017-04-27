@@ -4,10 +4,9 @@ use std::io::Read;
 use std::io::Error;
 
 pub fn read_file(path: PathBuf) -> Result<String, ParserError> {
-    File::open(path)
-        .map_err(ParserError::BadFile)
-        .and_then(|file| size_from_file(file).map_err(|err| ParserError::BadSize(err)))
-        .and_then(|_| Ok(String::from("File is non-empty")))
+    let file = try!(File::open(path));
+    let size = try!(size_from_file(file));
+    Ok(String::from("File is non-empty"))
 }
 
 #[derive(Debug)]
@@ -15,6 +14,19 @@ pub enum ParserError {
     BadFile(std::io::Error),
     BadSize(String),
 }
+
+impl From<std::io::Error> for ParserError {
+    fn from(err: std::io::Error) -> ParserError {
+        ParserError::BadFile(err)
+    }
+}
+
+impl From<std::string::String> for ParserError {
+    fn from(err: std::string::String) -> ParserError {
+        ParserError::BadSize(err)
+    }
+}
+
 
 fn size_from_file(mut file: File) -> Result<usize, String> {
     let mut my_string = String::new();
