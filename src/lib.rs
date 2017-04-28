@@ -4,8 +4,7 @@ use std::io::Read;
 use std::io::Error;
 
 pub fn read_file(path: PathBuf) -> Result<String, ParserError> {
-    let file = try!(File::open(path));
-    let size = try!(size_from_file(file));
+    let size = size_from_file(File::open(path)?)?;
     Ok(String::from("File is non-empty"))
 }
 
