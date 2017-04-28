@@ -3,9 +3,9 @@ use std::fs::File;
 use std::io::Read;
 
 pub fn read_file(path: PathBuf) -> Result<String, ParserError> {
-    File::open(path)
-        .map_err(From::from)
-        .and_then_e(|file| size_from_file(file))
+    e(File::open(path))
+        .and_then_e(size_from_file)
+        .and_then_e(catch_one)
         .and_then(|_| Ok(String::from("File is non-empty")))
 }
 
@@ -25,6 +25,17 @@ impl From<std::string::String> for ParserError {
     fn from(err: std::string::String) -> ParserError {
         ParserError::BadSize(err)
     }
+}
+
+impl From<usize> for ParserError {
+    fn from(err: usize) -> ParserError {
+        ParserError::BadSize(err.to_string())
+    }
+}
+
+fn e<T, D, E>(r: Result<T,D>) -> Result<T,E>
+where E: std::convert::From<D> {
+           r.map_err(From::from)
 }
 
 trait ErrorMapping<T, E, D>
@@ -52,6 +63,14 @@ fn size_from_file(mut file: File) -> Result<usize, String> {
                 l => Ok(l),
             }
         }
+    }
+}
+
+fn catch_one(s: usize) -> Result<usize, usize> {
+    if s == 1 {
+        Err(1)
+    } else {
+        Ok(s)
     }
 }
 
